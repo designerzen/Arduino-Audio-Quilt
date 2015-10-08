@@ -3,7 +3,7 @@
 
 Audio Quilt - A Sample Bank Player
 
-https://github.com/madsci1016/Sparkfun-MP3-Player-Shield-Arduino-Library/blob/master/SFEMP3Shield/Examples/FilePlayer/FilePlayer.ino
+http://github.com/madsci1016/Sparkfun-MP3-Player-Shield-Arduino-Library/blob/master/SFEMP3Shield/Examples/FilePlayer/FilePlayer.ino
 http://mpflaga.github.io/Sparkfun-MP3-Player-Shield-Arduino-Library/
    
  ------------------------------
@@ -109,19 +109,6 @@ void setup()
     // Initialise MP3 Player
     // Check to see if MP3 Player correctly loaded
     result = MP3Player.begin();
-    
-    /*
-         
-    0 OK
-    1 *Failure of SdFat to initialize physical contact with the SdCard
-    2 *Failure of SdFat to start the SdCard's volume
-    3 *Failure of SdFat to mount the root directory on the volume of the SdCard
-    4 Other than default values were found in the SCI_MODE register.
-    5 SCI_CLOCKF did not read back and verify the configured value.
-    6 Patch was not loaded successfully. This may result in playTrack errors
-
-    */
-    
     
     // This entire section can be removed to save memory!
     // ----------------------------- 8< ----------------------
@@ -338,12 +325,10 @@ boolean playNextTrackInBank( int bank )
     //specifiedSample = getSampleIndexFromBank( bank );
     //char sampleFileName[13] = getSampleNameFromBank( bank );
    
-    // Now play the sample at that index!
     // NB. It doesn't matter what the files are called...
     // playTrack uses indexes of the alphabetically ordered file list
+    
     //uint8_t playbackStatus = MP3Player.playTrack(specifiedSample);
-    //  Serial.println( getSampleNameFromBank( bank ) );
-    //Serial.println( sampleFileName );
     
     // The +1 at the end here makes the tracks go track_a1, track_a2 
     // ie. There is No track 0
@@ -363,36 +348,52 @@ boolean playNextTrackInBank( int bank )
     uint8_t playbackStatus = MP3Player.playMP3( sampleFileName );
    
     // Now check playback status to see if we have achieved playback
-    if (playbackStatus == 0)
+    // playTrack() returns 0 on success 
+    switch (playbackStatus)
     {
-        
-        // playTrack() returns 0 on success 
-        Serial.print(F( "Starting" ));
-        Serial.print(F( " Sample " ));
-        Serial.print( sampleIndex );
-        Serial.print(F( " Named " ));
-        Serial.print( sampleFileName );
-        Serial.print(F( " From Bank " ));
-        Serial.println( bankNames[bank] );
-        
-        // save current smaple index
-        specifiedSample = sampleIndex;
-        
-        return true;
-        
-    }else{
-        // rats... no file in this position...
-        
-        // ideally this will never be called
-        Serial.print(F( "Couldn't open" ));
-        Serial.print(F( " Sample " ));
-        Serial.print( sampleIndex );
-        Serial.print(F( " Named " ));
-        Serial.print( sampleFileName );
-        Serial.print(F( " From Bank " ));
-        Serial.println( bankNames[bank] );
-        
-        return false;
+        // 0 OK
+        case 0:
+            Serial.print(F( "Starting " ));
+            Serial.print( sampleIndex );
+            Serial.print(F( "/" ));
+            Serial.print( bankLimits[bank] );
+            Serial.print(F( " Named \"" ));
+            Serial.print( sampleFileName );
+            Serial.print(F( "\" From Bank " ));
+            Serial.println( bankNames[bank] );
+
+            // save current smaple index
+            specifiedSample = sampleIndex;
+
+            return true;
+            
+        // 1 Already playing track
+        case 1:
+            Serial.print(F( "Already Playing " ));
+            Serial.print( sampleIndex );
+            Serial.print(F( "/" ));
+            Serial.print( bankLimits[bank] );
+            Serial.print(F( " Named \"" ));
+            Serial.print( sampleFileName );
+            Serial.print(F( "\" From Bank " ));
+            Serial.println( bankNames[bank] );
+
+            return false;
+            
+        default:
+            // 2 File not found
+            // 3 indicates that the VSdsp is in reset.
+            // rats... no file in this position...
+            // ideally this will never be called
+            Serial.print(F( "Couldn't open" ));
+            Serial.print(F( " Sample " ));
+            Serial.print( sampleIndex );
+            Serial.print(F( " Named " ));
+            Serial.print( sampleFileName );
+            Serial.print(F( " From Bank " ));
+            Serial.println( bankNames[bank] );
+
+            return false;
     }
 }
 
