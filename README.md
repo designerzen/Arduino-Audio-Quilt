@@ -1,4 +1,4 @@
-# Arduino-Audio-Quilt
+# Arduino Audio Quilt
 A sample player for Arduino and Sparkfun MP3 Shield with seperate banks and track rotation ability
 
 ## How To Use
@@ -8,19 +8,29 @@ Copy your samples in the format TRACK_A1.MP3 where A is the Sample Bank and 1 is
 A Typical Setup might look like :
 
 TRACK_A1.MP3
+
 TRACK_A2.MP3
+
 TRACK_A3.MP3
+
 TRACK_A4.MP3
+
 TRACK_A6.MP3
 
 TRACK_B1.MP3
+
 TRACK_B2.MP3
+
 TRACK_B3.MP3
+
 TRACK_B4.MP3
 
 TRACK_C1.MP3
+
 TRACK_C2.MP3
+
 TRACK_C3.MP3
+
 
 _note:_ you will also need the other files that live in the SD Card folder as these are used by the MP3Shield.
 
@@ -29,12 +39,6 @@ IF YOU PLAN ON HAVING MORE SAMPLES THAN 9, PLEASE CHANGE THE BANKlIMITS VARIABLE
 
 
 ##  Limitations.
-
-* **The SPI Bus:** The configuration of the VS10xx chip as a Slave on the SPI bus, along with the SdCard on that same bus master hosted by the Arduino. See [Performance][15]
-* **Non-Blocking:** The controlling sketch needs to enquire via [SFEMP3Shield::isPlaying][16] as to determine if the current audio stream is finished or still playing. This is actually good and a result of the library being non-blocking, allowing the calling sketch to simply initiate the play of a desired audio stream from SdCard by simply calling playTrack or playMP3, of the desired file, and move on with other RealTime issues.
-* **Multi-Chip VS10xx support:** Not at this time. There are too many issues with member functions of the [SFEMP3Shield][1] class requiring to be static.
-* **Audio Input** Most commericially available shields at this time do not support either Line Level or Microphone Input. With the exception of the Seeeduino MP3 Shield and other home made shields. Where as the below admx____.053 and [SFEMP3Shield::ADMixerLoad][17] and [SFEMP3Shield::ADMixerVol][18] are provided for such devices. Otherwise the example [MP3Shield_Library_Demo.ino][8] has these lines commented out in [setup()][19]. As to reduce complications. To re-enable simply uncomment.
-* **Recording** As most commericially available shields do not support audio input this feature has not been implemented.
 
 Understanding that every byte streamed to the VS10xx needs also to be read from the SdCard over the same shared SPI bus, resulting in the SPI bus being less than half as efficient. Along with overhead. Depending upon the Bitrate of the file being streamed to the VSdsp, there is only so much Real Time available. This may impact the performance of high bit-rate audio files being streamed. Additionally the Play Speed Multiplier feature can be exhausted quickly. Where on a typical UNO there is plenty of real-time to transfer good quality files, with CPU to spare for other tasks, assuming they do not consume too much time either.
 
@@ -55,8 +59,6 @@ _Note_
 
 The VS10xx chips are DSP's that run firmware out of ROM, that is internal to the VS10xx chip itself. Where the VSdsp's RAM can additionally be loaded with externally provided firmware and executed, also known as patches or plug-ins, over the SPI port and executed. This allows the VSdsp to have a method for both fixing problems that may exist in the factory ROM's firmware and or add new features provided by [VLSI's website][22]. It is even possible to write your own custom VSdsp code, using there Integrated Development Tools (VSIDE).
 
-_vs_plg_to_bin.pl_ is a perl script, that is provided in this library to run on your PC, to read and digest the .plg files converting them to raw binary as to be read by [SFEMP3Shield::VSLoadUserCode()][23] from the SdCard. Allowing updates to the VSDsp into its volatile memory after each reset. These updates may be custom features or accumulated patches.
-
 By storing them on the SdCard these plug-ins do not consume the Arduino's limited Flash spaces
 
 Below are pre-compiled binary's of corresponding provided VSLI patches/plugins. The filenames are kept short as SdCard only support 8.3.
@@ -75,29 +77,21 @@ Below are pre-compiled binary's of corresponding provided VSLI patches/plugins. 
 Note
 : All plugins should be placed in the root of the SdCard.
 
-:  **patches.053** is a cumulative update correcting many known troublesome issues. Hence patches.053 is attempted in [SFEMP3Shield::vs_init][24].
 
-:  VSLI may post periodic updates on there [software website][22]
-
-:  Perl is natively provided on Linux systems, and may be downloaded from [Active Perl ][25] for windows systems.
-
-See Also
-: about Analog to Digital Mixer (e.g. admx____.053) please note [Limitations.][26]
+## Trouble Shooting.
 
 The below is a list of basic questions to ask when attempting to determine the problem.
 
 * Did it initially **PRINT** the available RAM and Full Help Menu?
-    * The [MP3Shield_Library_Demo.ino][8] example should initially provide a opening print indicating the amount of available SRAM and full menu help. If you don't see this the problem is between your Target and IDE. And likely not this library
+    * On initialisation dod it provide a opening print indicating the amount of available SRAM and full menu help. If you don't see this the problem is between your Target and IDE. And likely not this library
     * Is Serial Monitor set to the correct tty or com port and 115200 baud rate? Did you change the baud rate?
     * Reset the Arduino after Serial Monitor is open or send any key. It may have printed these prior to the Serial Monitor being started.
 * **WHAT** is the Error reported?
     * Is the Error Code is indicating a file problem.
     * Are the filenames 8.3 format? See below warning.
-    * See also [Error Codes][27]
 * Did the SdCard **LOAD**?
     * Try reseating your SdCard.
 * Is **MP3player.begin()** locking up, in [setup()][19]?
-* Are you trying to update from a version prior to 1.01.00?
 * Why does my Serial Monitor display: "`...do not have a sd.begin in the main sketch, See Trouble Shooting Guide.`"
 * Compiler Error: "`...undefined reference to `sd'`"
 * Is the last thing printed to the Serial Monitor: "`Free RAM = 1097 Should be a base line of 1095, on ATmega328 when using INTx`" then nothing...
@@ -146,8 +140,6 @@ The following error codes return from the [SFEMP3Shield::begin()][28] member fun
     5 SCI_CLOCKF did not read back and verify the configured value.
     6 Patch was not loaded successfully. This may result in playTrack errors
 
-[**Deprecated:][33]**
-: Error codes 1,2,3 due to use of `sd.begin()` as global, starting version 1.1.0
 
 ##  Playing functions:
 
@@ -157,13 +149,5 @@ The following error codes return from the [SFEMP3Shield::playTrack()][34] or [SF
     1 Already playing track
     2 File not found
     3 indicates that the VSdsp is in reset.
-
-##  Skip function:
-
-The following error codes return from the [SFEMP3Shield::skipTo()][36]member function.
-
-    0 OK
-    1 Not Playing track
-    2 Failed to skip to new file location
 
 The code has been written with plenty of appropiate comments, describing key components, features and reasonings.
