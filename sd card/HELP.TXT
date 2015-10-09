@@ -1,0 +1,14 @@
+--- Help ---
+Copy your created samples onto the SD Card in the format:
+SAMPLEBANK NUMBER .MP3
+eg. A1.MP3, A2.MP3, A3.MP3, B1.MP3, C1.MP3, D1.MP3, E1.MP3, 
+    E2.MP3 ... L1.MP3, L2.MP3, L3.MP3
+    
+Each electrode triggers the next sample in it's relevant bank.
+
+So, 
+    Electrode 0 cycles through bank A's sounds
+    Electrode 1 cycles through bank B's sounds
+    Electrode 2 cycles through bank C's sounds
+    
+You need to keep the files ending with .053 on the card 

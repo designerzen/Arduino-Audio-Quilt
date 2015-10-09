@@ -51,9 +51,13 @@ http://mpflaga.github.io/Sparkfun-MP3-Player-Shield-Arduino-Library/
 
 
 // SETTINGS :
-// 16 is the MAX length of the file name
+// 12 is the MAX length of a file name
 // %d is the dynamic track number
-char baseFileName[16] = "TRACK_Z%d.MP3";
+//char baseFileName[16] = "TRACK_Z%d.MP3";  // TRACK_A1.MP3
+char baseFileName[12] = "Z%d.MP3";          // A1.MP3
+// char baseFileName[16] = "Z%03i.MP3";     // A001.MP3
+
+uint8_t bankPosition = 0;   // 6
 
 // We have 12 Banks a-l :
 // EDIT : Names of the sample banks
@@ -62,9 +66,10 @@ char bankNames[12] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L
 
 // EDIT : Quantity of samples in each bank
 // NB. This process is handles automatically if a file cannot be played
+// You can set the number higher if you plan on having many more samples
 int bankLimits[12]  = { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 };
 
-// EDIT : Do we want a repeated press of the electrode to stop the previous sound
+// EDIT : Do we want a repeated press of the electrode to stop the previous sound?
 boolean stopOnRepeat = false;
 
 // don't mess with these!
@@ -81,6 +86,10 @@ SFEMP3Shield MP3Player;
 // unsigned 8-bit integer (like a byte but just for numbers 0-9)
 uint8_t result;
 
+// Current playing sample index
+int specifiedSample = -1;
+// As we are monophonic, we can record the last key pressed
+int lastElectrodePressed = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Automatically gets called once at the beginning of the application
@@ -118,13 +127,14 @@ void setup()
         // Success!
         case 0:
             // Print out some nice information to the console
-            Serial.println(F("Gawain&Zen Industries === ") );    
+            Serial.println(F("Gawain & Zen Industries === ") );
             Serial.println(F("Audio Sample Quilt") );    
             Serial.print(F("F_CPU = "));
             Serial.println(F_CPU);
             Serial.print(F("Free RAM = ")); // available in Version 1.0 F() bases the string to into Flash, to use less SRAM.
             Serial.print(FreeRam(), DEC);  // FreeRam() is provided by SdFatUtil.h
             Serial.println(F(" Should be a base line of 1028, on ATmega328 when using INTx"));
+
             break;
 
         // Failures...
@@ -174,8 +184,43 @@ void setup()
         
     // Check File Limits from filenames available
     determineLimits();
+
+    // Console help
+    if (Serial) showHelp();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+// METHOD : Prints the contents of help.txt to the console to save memory on credits
+////////////////////////////////////////////////////////////////////////////////////////
+void showHelp()
+{
+    char line[25];
+    int n;
+    // open test file
+    SdFile file("HELP.TXT", O_READ);
+
+    // check for open error
+    if (file.isOpen())
+    {
+        // File help.txt exists
+        // read lines from the file
+        while ((n = file.fgets(line, sizeof(line))) > 0)
+        {
+            if (line[n - 1] == '\n')
+            {
+                // remove '\n'
+                line[n-1] = 0;
+                // replace next line with LCD call to display line
+                Serial.println(line);
+            } else {
+                // no '\n' - line too long or missing '\n' at EOF
+                // handle error
+            }
+        }
+    }else{
+        // help file does not exist on the SD Card
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // METHOD : Handy way of showing what files are on the sd card
@@ -188,7 +233,9 @@ void listFiles()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// METHOD  :
+// METHOD  : Count how many sequential samples there are on the SD Card in "bank"
+// RETURNS : an Integer
+// SUMMARY : Get the NUMBER of tracks mp3s for the specified Sample Bank
 ////////////////////////////////////////////////////////////////////////////////////////
 int getSampleQuantityInBank( int bank )
 {
@@ -209,7 +256,7 @@ int getSampleQuantityInBank( int bank )
         // Create the expected filenames 
         char sampleFileName[13];
         // overwrite the 6th character
-        baseFileName[6] = bankNames[bank];
+        baseFileName[bankPosition] = bankNames[bank];
         sprintf( sampleFileName, baseFileName, track);
 
         // check to see if this file exists on the drive...
@@ -259,15 +306,15 @@ void determineLimits()
     // Loop through Banks...
     for (int bank = 0; bank <= PIN_LAST; bank++)
     {
-        int quantity = getSampleQuantityInBank( bank );
+        // now we cam determine the quantity,
+        // we can overwrite the built in limit
+        bankLimits[ bank ] = getSampleQuantityInBank( bank );
+
         Serial.print(F("Bank ")); 
         Serial.print( bankNames[bank] ); 
         Serial.print(F(" contains ")); 
-        Serial.print( quantity ); 
-        Serial.println(F(" samples")); 
-        // now that we have determined the quantity,
-        // we can overwrite the built in limit
-        bankLimits[ bank ] = quantity;
+        Serial.print( bankLimits[ bank ] );
+        Serial.println(F(" samples"));
     }
     
     Serial.println(F("----------------------"));
@@ -310,9 +357,8 @@ int getSampleIndexFromBank( int bank )
 // METHOD  : Play the next sample track from the specified bank of samples
 // NB. playTrack( int ) only works for 0-9 so in order to access more banks of sounds
 // we are going to have to use a different method to create the filenames
-// RETURNS : True or False
+// RETURNS : Playback success - True or False
 ////////////////////////////////////////////////////////////////////////////////////////
-int specifiedSample = -1;
 boolean playNextTrackInBank( int bank )
 {
     // * CHOICE :
@@ -338,7 +384,7 @@ boolean playNextTrackInBank( int bank )
     // This is a neat method of changing the character at space 6
     // To any other character without having to specify a new variable
     // and thus saves us some precious memory
-    baseFileName[6] = bankNames[bank];
+    baseFileName[bankPosition] = bankNames[bank];
     
     // convert it to a file name
     char sampleFileName[13];
@@ -384,7 +430,7 @@ boolean playNextTrackInBank( int bank )
             // 2 File not found
             // 3 indicates that the VSdsp is in reset.
             // rats... no file in this position...
-            // ideally this will never be called
+            // in an ideal world this will never be called
             Serial.print(F( "Couldn't open" ));
             Serial.print(F( " Sample " ));
             Serial.print( sampleIndex );
@@ -402,8 +448,6 @@ boolean playNextTrackInBank( int bank )
 // METHOD : Read any changes that might have occurred with the touch pads
 // NB. Gets run on every cycle of the application via loop()
 ////////////////////////////////////////////////////////////////////////////////////////
-// As we are monophonic, we can record the last key pressed
-int lastElectrodePressed = 0;
 void readTouchInputs()
 {
     // Has the Touch Board been Touched?
@@ -435,7 +479,7 @@ void readTouchInputs()
                     // Debug if Electrode I interefered with
                     if ( i == PIN_LAST )
                     {
-                        // last key bank... list files
+                        // last pin pressed... list files
                         Serial.println( "Limitting... " );
                         determineLimits();
                     }
@@ -443,7 +487,7 @@ void readTouchInputs()
                     // Debug if Electrode I interefered with
                     if ( i == PIN_LAST-1 )
                     {
-                        // last key bank... list files
+                        // second to last pin... list files
                         Serial.println( "Listing Files ... " );
                         listFiles();
                     }
@@ -542,5 +586,7 @@ void loop()
     // TODO : Only call this method if result == 1
     // as this means that everything has initialised correctly
     // but also slows this loop down...
+    // realistically, it won't affect the life of the SD Card
+    // but adds weight to the CPU and so may not be for the best
     readTouchInputs();
 }

@@ -3,33 +3,33 @@ A sample player for Arduino and Sparkfun MP3 Shield with seperate banks and trac
 
 ## How To Use
 
-Copy your samples in the format TRACK_A1.MP3 where A is the Sample Bank and 1 is the Sample Number.
+Copy your samples in the format A1.MP3 where A is the Sample Bank and 1 is the Sample Number.
 
 A Typical Setup might look like :
 
-TRACK_A1.MP3
+A1.MP3
 
-TRACK_A2.MP3
+A2.MP3
 
-TRACK_A3.MP3
+A3.MP3
 
-TRACK_A4.MP3
+A4.MP3
 
-TRACK_A6.MP3
+A6.MP3
 
-TRACK_B1.MP3
+B1.MP3
 
-TRACK_B2.MP3
+B2.MP3
 
-TRACK_B3.MP3
+B3.MP3
 
-TRACK_B4.MP3
+B4.MP3
 
-TRACK_C1.MP3
+C1.MP3
 
-TRACK_C2.MP3
+C2.MP3
 
-TRACK_C3.MP3
+C3.MP3
 
 
 _note:_ you will also need the other files that live in the SD Card folder as these are used by the MP3Shield.
