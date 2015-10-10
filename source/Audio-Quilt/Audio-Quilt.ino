@@ -5,7 +5,8 @@ Audio Quilt - A Sample Bank Player
 
 http://github.com/madsci1016/Sparkfun-MP3-Player-Shield-Arduino-Library/blob/master/SFEMP3Shield/Examples/FilePlayer/FilePlayer.ino
 http://mpflaga.github.io/Sparkfun-MP3-Player-Shield-Arduino-Library/
-   
+http://mpflaga.github.io/Sparkfun-MP3-Player-Shield-Arduino-Library/class_s_f_e_m_p3_shield.html#aa0f78c569478259a1d8a7ed96a4c4167
+https://github.com/madsci1016/Sparkfun-MP3-Player-Shield-Arduino-Library/blob/master/SFEMP3Shield/Examples/MP3Shield_Library_Demo/MP3Shield_Library_Demo.ino
  ------------------------------
 
  Bare Conductive code written by Stefan Dzisiewski-Smith and Peter Krige.
@@ -102,7 +103,7 @@ void setup()
 
     // uncomment when using the serial monitor
     // makes the arduino wait here until console is available
-    while (!Serial) ; {} 
+    //while (!Serial) ; {}
     
     // Check SD Card
     if (!sd.begin(SD_SEL, SPI_HALF_SPEED)) sd.initErrorHalt();
@@ -186,7 +187,7 @@ void setup()
     determineLimits();
 
     // Console help
-    if (Serial) showHelp();
+    // if (Serial) showHelp();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
